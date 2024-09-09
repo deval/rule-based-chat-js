@@ -8,6 +8,7 @@
     <!-- Include NLP.js library -->
     <script src="https://cdn.jsdelivr.net/npm/@nlpjs/core@4.27.0/dist/nlp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@nlpjs/lang-en-min@4.27.0/dist/nlp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@nlpjs/nlp@4.27.0/src/context-manager.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,7 +52,8 @@
 
     <script>
         // Initialize NLP Manager
-        const { NlpManager } = window.nlpjs;
+        const { NlpManager } = require('node-nlp');
+        //const { NlpManager } = window.nlpjs;
         const manager = new NlpManager({ languages: ['en'] });
 
         // Add question-answer pairs
