@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chatbot</title>
-    <!-- Include NLP.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/@nlpjs/core@4.27.0/dist/nlp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@nlpjs/lang-en-min@4.27.0/dist/nlp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@nlpjs/nlp@4.27.0/src/context-manager.min.js"></script>
+    <title>Simple Chatbot with Compromise.js</title>
+    <!-- Include Compromise.js library -->
+    <script src="https://unpkg.com/compromise@13.11.2/builds/compromise.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,9 +24,11 @@
         }
         .user-message {
             text-align: right;
+            color: blue;
         }
         .bot-message {
             text-align: left;
+            color: green;
         }
         #user-input {
             width: 70%;
@@ -51,29 +51,43 @@
     <button id="send-btn">Send</button>
 
     <script>
-        // Initialize NLP Manager
-        const { NlpManager } = require('node-nlp');
-        //const { NlpManager } = window.nlpjs;
-        const manager = new NlpManager({ languages: ['en'] });
+        // Predefined Question-Answer pairs
+        const qaDataset = [
+            { question: "What is your name?", answer: "I am a chatbot." },
+            { question: "How are you?", answer: "I am just a program, but I am functioning as expected." },
+            { question: "What can you do?", answer: "I can answer questions based on the rules defined in my code." },
+            // Add more question-answer pairs as needed
+        ];
 
-        // Add question-answer pairs
-        manager.addDocument('en', 'What is your name?', 'name.query');
-        manager.addAnswer('en', 'name.query', 'I am a chatbot.');
+        // Function to calculate similarity between two strings using Jaccard similarity (simplified)
+        function calculateSimilarity(str1, str2) {
+            const doc1 = nlp(str1).terms().out('array');
+            const doc2 = nlp(str2).terms().out('array');
 
-        manager.addDocument('en', 'How are you?', 'health.query');
-        manager.addAnswer('en', 'health.query', 'I am just a program, but I am functioning as expected.');
+            const intersection = doc1.filter(word => doc2.includes(word));
+            const union = new Set([...doc1, ...doc2]);
 
-        manager.addDocument('en', 'What can you do?', 'ability.query');
-        manager.addAnswer('en', 'ability.query', 'I can answer questions based on the rules defined in my code.');
+            return intersection.length / union.size;
+        }
 
-        // Train the NLP model
-        (async () => {
-            await manager.train();
-            manager.save();
-        })();
+        // Function to get the best matching answer from the dataset
+        function getBestMatch(userInput) {
+            let bestMatchIndex = -1;
+            let highestScore = 0;
+
+            qaDataset.forEach((item, index) => {
+                const similarityScore = calculateSimilarity(userInput, item.question);
+                if (similarityScore > highestScore) {
+                    highestScore = similarityScore;
+                    bestMatchIndex = index;
+                }
+            });
+
+            return highestScore > 0.2 ? qaDataset[bestMatchIndex].answer : "I'm sorry, I don't understand the question.";
+        }
 
         // Function to handle user input and display chatbot response
-        async function handleUserInput() {
+        function handleUserInput() {
             const userInput = document.getElementById('user-input').value;
             if (userInput.trim() === '') return;
 
@@ -81,8 +95,7 @@
             displayMessage(userInput, 'user-message');
 
             // Get the chatbot response
-            const response = await manager.process('en', userInput);
-            const botReply = response.answer || "I'm sorry, I don't understand the question.";
+            const botReply = getBestMatch(userInput);
 
             // Display bot response
             displayMessage(botReply, 'bot-message');
