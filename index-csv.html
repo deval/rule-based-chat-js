@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chatbot with Compromise.js</title>
+    <!-- Include Compromise.js library -->
+    <script src="https://unpkg.com/compromise@13.11.2/builds/compromise.min.js"></script>
+    <!-- Include Papa Parse library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        #chat-container {
+            margin-bottom: 20px;
+        }
+        .message {
+            margin: 10px 0;
+        }
+        .user-message {
+            text-align: right;
+            color: blue;
+        }
+        .bot-message {
+            text-align: left;
+            color: green;
+        }
+        #user-input {
+            width: 70%;
+            padding: 10px;
+        }
+        #send-btn {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simple Chatbot</h1>
+    
+    <div id="chat-container">
+        <!-- Chat messages will appear here -->
+    </div>
+
+    <input type="text" id="user-input" placeholder="Type your question here..." />
+    <button id="send-btn">Send</button>
+
+    <script>
+        let qaDataset = [];
+
+        // Load the CSV dataset using Papa Parse
+        Papa.parse('dataset.csv', {
+            download: true,
+            header: true,
+            complete: function(results) {
+                qaDataset = results.data;
+                console.log('CSV data loaded:', qaDataset);
+            },
+            error: function(error) {
+                console.error('Error loading CSV dataset:', error);
+            }
+        });
+
+        // Function to calculate similarity between two strings using Jaccard similarity (simplified)
+        function calculateSimilarity(str1, str2) {
+            const doc1 = nlp(str1).terms().out('array');
+            const doc2 = nlp(str2).terms().out('array');
+
+            const intersection = doc1.filter(word => doc2.includes(word));
+            const union = new Set([...doc1, ...doc2]);
+
+            return intersection.length / union.size;
+        }
+
+        // Function to get the best matching answer from the dataset
+        function getBestMatch(userInput) {
+            let bestMatchIndex = -1;
+            let highestScore = 0;
+
+            qaDataset.forEach((item, index) => {
+                const similarityScore = calculateSimilarity(userInput, item.question);
+                if (similarityScore > highestScore) {
+                    highestScore = similarityScore;
+                    bestMatchIndex = index;
+                }
+            });
+
+            return highestScore > 0.2 ? qaDataset[bestMatchIndex].answer : "I'm sorry, I don't understand the question.";
+        }
+
+        // Function to handle user input and display chatbot response
+        function handleUserInput() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;
+
+            // Display user message
+            displayMessage(userInput, 'user-message');
+
+            // Get the chatbot response
+            const botReply = getBestMatch(userInput);
+
+            // Display bot response
+            displayMessage(botReply, 'bot-message');
+
+            // Clear the input field
+            document.getElementById('user-input').value = '';
+        }
+
+        // Function to display messages
+        function displayMessage(message, className) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${className}`;
+            messageElement.textContent = message;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom
+        }
+
+        // Event listener for the Send button
+        document.getElementById('send-btn').addEventListener('click', handleUserInput);
+
+        // Optional: Handle 'Enter' key press for sending messages
+        document.getElementById('user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+    </script>
+</body>
+</html>
