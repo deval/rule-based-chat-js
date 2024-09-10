@@ -8,7 +8,8 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Initialize AIML engine
-            const aiml = new AIML();
+            // const aiml = new AIML();
+            const aiml = new AIMLInterpreter();
 
             // Load AIML file (you can use a local file or a hosted one)
             aiml.loadFromUrl('aiml.xml').then(() => {
