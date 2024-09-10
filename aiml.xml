@@ -1,0 +1,31 @@
+<aiml version="1.0.1" encoding="UTF-8">
+    <!-- Main Greeting Response -->
+    <category>
+        <pattern>HELLO</pattern>
+        <template>
+            Hello! How can I assist you today?
+        </template>
+    </category>
+
+    <!-- Redirect Synonyms to Main Greeting -->
+    <category>
+        <pattern>HI</pattern>
+        <template>
+            <srai>HELLO</srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>HEY</pattern>
+        <template>
+            <srai>HELLO</srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>GOOD MORNING</pattern>
+        <template>
+            <srai>HELLO</srai>
+        </template>
+    </category>
+</aiml>
